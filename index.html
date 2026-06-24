@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>블로거메이트 견적/가입 신청</title>
+  <title>블로거메이트 견적 계산기</title>
+  <meta name="description" content="서비스 소개" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="블로거메이트 견적 계산기" />
+  <meta property="og:description" content="서비스 소개" />
+  <meta property="og:image" content="https://nodcreatives.github.io/blgmt_logo.png" />
+  <meta property="og:url" content="https://nodcreatives.github.io/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="블로거메이트 견적 계산기" />
+  <meta name="twitter:description" content="서비스 소개" />
+  <meta name="twitter:image" content="https://nodcreatives.github.io/blgmt_logo.png" />
+<link rel="icon" type="image/png" href="https://nodcreatives.github.io/blgmt_logo.png" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
@@ -259,20 +270,18 @@ class Component extends React.Component {
             h('div', { style: { fontSize: 13.5, fontWeight: 700, color: '#1D1D1F' } }, '목록에 없는 유입량 · 별도 문의'),
             h('div', { style: { fontSize: 11.5, fontWeight: 500, color: '#86868B', marginTop: 2, lineHeight: 1.45 } }, '중간 구간·대량 등 원하는 유입량은 카카오톡 상담으로 맞춤 견적을 드려요'))),
         h('div', { key: 'mode', style: { marginTop: 16 } },
-          this.lbl('결제 방식', 0),
+          this.lbl('결제 개월', 0),
           v.custom
-            ? h('div', { style: { fontSize: 12.5, color: '#86868B', fontWeight: 500, lineHeight: 1.5 } }, '맞춤 유입량은 결제 방식과 금액을 카카오톡 상담으로 안내드려요.')
+            ? h('div', { style: { fontSize: 12.5, color: '#86868B', fontWeight: 500, lineHeight: 1.5 } }, '맞춤 유입량은 결제 개월과 금액을 카카오톡 상담으로 안내드려요.')
             : h('div', null,
                 h('div', { style: { display: 'flex', gap: 8 } }, [
                   this.seg(v.mode !== 'months', '프로모션', () => setV({ mode: 'promo' }), '무료 개월 포함'),
-                  this.seg(v.mode === 'months', '1개월 단위', () => setV({ mode: 'months' }), '직접 선택'),
+                  this.seg(v.mode === 'months', '1개월', () => setV({ mode: 'months', months: 1 }), '단월 결제'),
                 ]),
                 v.mode === 'months'
-                  ? h('div', { style: { display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 } },
-                      h('button', { onClick: () => setV({ months: Math.max(1, (v.months || 1) - 1) }), style: { cursor: 'pointer', width: 38, height: 38, borderRadius: 10, border: '1.5px solid #E3E3E8', background: '#FFFFFF', fontSize: 18, fontWeight: 800, color: '#515154' } }, '−'),
-                      h('div', { style: { minWidth: 70, textAlign: 'center', fontSize: 16, fontWeight: 800 } }, (v.months || 1) + '개월'),
-                      h('button', { onClick: () => setV({ months: Math.min(12, (v.months || 1) + 1) }), style: { cursor: 'pointer', width: 38, height: 38, borderRadius: 10, border: '1.5px solid #E3E3E8', background: '#FFFFFF', fontSize: 18, fontWeight: 800, color: '#515154' } }, '+'),
-                      h('span', { style: { fontSize: 11.5, color: '#86868B', fontWeight: 500, lineHeight: 1.4 } }, '무료 개월 없이 월요금 × 개월'))
+                  ? h('div', { style: { marginTop: 12, padding: '11px 13px', borderRadius: 10, background: '#FFFFFF', border: '1px solid #E8E8ED' } },
+                      h('div', { style: { fontSize: 13, fontWeight: 700, color: '#1D1D1F' } }, '1개월 결제'),
+                      h('div', { style: { fontSize: 11.5, color: '#86868B', fontWeight: 500, marginTop: 3 } }, '무료 개월 없이 월요금 1개월분'))
                   : h('div', { style: { marginTop: 12, padding: '11px 13px', borderRadius: 10, background: '#FFFFFF', border: '1px solid #E8E8ED' } },
                       h('div', { style: { fontSize: 13, fontWeight: 700, color: '#0059B3' } }, prm.pay + '개월 결제' + (prm.free > 0 ? ' + ' + prm.free + '개월 무료' : '')),
                       h('div', { style: { fontSize: 11.5, color: '#86868B', fontWeight: 500, marginTop: 3 } }, v.plan + ' · ' + (s.custType === 'renew' ? '연장' : '신규') + ' 기준'))))));
@@ -300,11 +309,16 @@ class Component extends React.Component {
       rows.push(h('div', { key: 'empty', style: { fontSize: 13, color: '#86868B', fontWeight: 500, padding: '4px 0' } }, '선택된 서비스가 없습니다.'));
     } else {
       all.items.forEach((it, i) => {
-        rows.push(h('div', { key: 'r' + i, style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, padding: '9px 0', borderTop: i === 0 ? 'none' : '1px solid #ECECEF' } },
+        rows.push(h('div', { key: 'r' + i, style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, padding: '11px 0', borderTop: i === 0 ? 'none' : '1px solid #ECECEF' } },
           h('div', { style: { minWidth: 0 } },
             h('div', { style: { fontSize: 13.5, fontWeight: 700, color: '#1D1D1F' } }, it.title),
-            h('div', { style: { fontSize: 11.5, fontWeight: 500, color: '#86868B', marginTop: 2 } }, it.sub)),
-          h('span', { style: { fontSize: 14, fontWeight: 700, color: '#1D1D1F', whiteSpace: 'nowrap' } }, it.custom ? '별도 문의' : won(it.total))));
+            h('div', { style: { fontSize: 11.5, fontWeight: 500, color: '#86868B', marginTop: 2 } }, it.model || it.sub),
+            it.custom
+              ? null
+              : h('div', { style: { marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 9px', borderRadius: 8, background: '#EAF3FF', border: '1px solid #CFE3FB' } },
+                  h('span', { className: 'mono', style: { fontSize: 11.5, fontWeight: 700, color: '#0059B3', fontFamily: FONT } }, won(it.monthly) + '/월 · ' + it.pay + '개월'),
+                  it.free > 0 ? h('span', { style: { fontSize: 10.5, fontWeight: 800, color: '#fff', background: '#0071E3', padding: '2px 7px', borderRadius: 5 } }, '+' + it.free + '개월 무료') : null)),
+          h('span', { className: 'mono', style: { fontSize: 14, fontWeight: 700, color: '#1D1D1F', whiteSpace: 'nowrap', fontFamily: FONT } }, it.custom ? '별도 문의' : won(it.total))));
       });
     }
     return h('div', { key: 's3', style: { animation: 'stepIn .3s ease both' } },
